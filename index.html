@@ -5,26 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Limitless Performance and Fitness</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background:black; color:#7ed957; }
-    header { background:black; border-bottom:2px solid #7ed957; padding:10px; text-align:center; }
-    nav { display:flex; justify-content:center; gap:10px; padding:10px; border-bottom:1px solid #7ed957; flex-wrap:wrap; }
-    nav a { color:#7ed957; text-decoration:none; padding:5px 10px; border:1px solid #7ed957; border-radius:4px; }
-    nav a:hover { background:#7ed957; color:black; }
-    .page { display:none; padding:20px; }
-    .active { display:block; }
-    table { width:100%; border-collapse:collapse; margin-bottom:20px; border:1px solid #7ed957; }
-    th,td { border:1px solid #7ed957; padding:6px; text-align:left; color:#7ed957; background:black; }
-    th { background:black; }
-    input, select, textarea { width:100%; padding:5px; box-sizing:border-box; background:black; color:#7ed957; border:1px solid #7ed957; }
-    button { background:black; color:#7ed957; padding:6px 10px; border:1px solid #7ed957; border-radius:4px; cursor:pointer; }
-    button:hover { background:#7ed957; color:black; }
-    #total-volume { font-weight:bold; }
+    body { font-family: Arial, sans-serif; margin: 0; background: black; color: #7ed957; }
+    header { background: black; border-bottom: 2px solid #7ed957; padding: 10px; text-align: center; }
+    nav { display: flex; justify-content: center; gap: 10px; padding: 10px; border-bottom: 1px solid #7ed957; flex-wrap: wrap; }
+    nav a { color: #7ed957; text-decoration: none; padding: 5px 10px; border: 1px solid #7ed957; border-radius: 4px; }
+    nav a:hover { background: #7ed957; color: black; }
+    .page { display: none; padding: 20px; }
+    .active { display: block; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #7ed957; }
+    th, td { border: 1px solid #7ed957; padding: 6px; text-align: left; color: #7ed957; background: black; }
+    th { background: black; }
+    input, select, textarea { width: 100%; padding: 5px; box-sizing: border-box; background: black; color: #7ed957; border: 1px solid #7ed957; }
+    button { background: black; color: #7ed957; padding: 6px 10px; border: 1px solid #7ed957; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #7ed957; color: black; }
+    #total-volume { font-weight: bold; }
     .calc-section { margin-bottom: 30px; padding: 15px; border: 1px solid #7ed957; border-radius: 4px; }
     .result { font-weight: bold; background: #111; padding: 10px; margin-top: 10px; border-radius: 4px; }
     .delta { color: #7ed957; }
     .delta.positive { color: #7ed957; }
     .delta.negative { color: #d9577e; }
-    .notes { background: #111; padding: 10px; margin: 10px 0; border-radius: 4px; border:1px solid #7ed957; }
+    .notes { background: #111; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #7ed957; }
     .date-input, .user-id-input { margin-bottom: 10px; }
   </style>
 </head>
@@ -69,7 +69,7 @@
         <tr>
           <td colspan="9" id="total-volume">Total Volume: 0 lbs | Total Sets: 0 | Volume Category: Low</td>
           <td colspan="2">
-            <button onclick="addSet()">Add Set</button>
+            <button.onclick="addSet()">Add Set</button>
             <button onclick="saveWorkout()">Save Workout</button>
           </td>
         </tr>
@@ -79,32 +79,185 @@
     <textarea id="notes" rows="4" placeholder="Additional notes..."></textarea>
   </div>
 
-  <!-- Other pages unchanged -->
-  <div id="daily" class="page">...</div>
-  <div id="nutrition" class="page">...</div>
-  <div id="cardio" class="page">...</div>
-  <div id="performance" class="page">...</div>
-  <div id="calculators" class="page">...</div>
-  <div id="progress" class="page">...</div>
-  <div id="hypertrophy" class="page">...</div>
-  <div id="strength" class="page">...</div>
-  <div id="mesocycle" class="page">...</div>
-  <div id="history" class="page">...</div>
-  <div id="analytics" class="page">...</div>
+  <div id="daily" class="page">
+    <h2>Daily Comments</h2>
+    <div class="user-id-input">
+      <label for="daily-user_id">User ID:</label>
+      <input type="text" id="daily-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="daily-date">Date:</label>
+      <input type="date" id="daily-date">
+    </div>
+    <table id="daily-table">
+      <thead>
+        <tr>
+          <th>Pain</th><th>Warm-up</th><th>Tired</th><th>Sore</th><th>Desire</th><th>Notes</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="daily-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="7">
+            <button onclick="addDaily()">Add Daily Log</button>
+            <button onclick="saveDaily()">Save Daily Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="nutrition" class="page">
+    <h2>Nutrition</h2>
+    <div class="user-id-input">
+      <label for="nutrition-user_id">User ID:</label>
+      <input type="text" id="nutrition-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="nutrition-date">Date:</label>
+      <input type="date" id="nutrition-date">
+    </div>
+    <table id="nutrition-table">
+      <thead>
+        <tr>
+          <th>Calories</th><th>Weight</th><th>Steps</th><th>Fat</th><th>Carbs</th><th>Protein</th>
+          <th>Sleep</th><th>RHR</th><th>HRV</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="nutrition-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="9">
+            <button onclick="addNutrition()">Add Nutrition Log</button>
+            <button onclick="saveNutrition()">Save Nutrition Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="cardio" class="page">
+    <h2>Cardio</h2>
+    <div class="user-id-input">
+      <label for="cardio-user_id">User ID:</label>
+      <input type="text" id="cardio-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="cardio-date">Date:</label>
+      <input type="date" id="cardio-date">
+    </div>
+    <table id="cardio-table">
+      <thead>
+        <tr>
+          <th>Exercise</th><th>Minutes</th><th>Speed</th><th>Incline</th><th>Avg HR</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="cardio-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6">
+            <button onclick="addCardio()">Add Cardio Log</button>
+            <button onclick="saveCardio()">Save Cardio Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="performance" class="page">
+    <h2>Performance</h2>
+    <div class="user-id-input">
+      <label for="performance-user_id">User ID:</label>
+      <input type="text" id="performance-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="performance-date">Date:</label>
+      <input type="date" id="performance-date">
+    </div>
+    <table id="performance-table">
+      <thead>
+        <tr>
+          <th>Lift</th><th>e1RM</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="performance-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4">
+            <button onclick="addPerformance()">Add Performance Log</button>
+            <button onclick="savePerformance()">Save Performance Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="calculators" class="page">
+    <h2>Calculators</h2>
+    <!-- Your existing calculator code -->
+  </div>
+  <div id="progress" class="page">
+    <h2>Weekly Progress</h2>
+    <!-- Your existing progress code -->
+  </div>
+  <div id="hypertrophy" class="page">
+    <h2>Hypertrophy Blocks</h2>
+    <!-- Your existing hypertrophy code -->
+  </div>
+  <div id="strength" class="page">
+    <h2>Strength Blocks</h2>
+    <!-- Your existing strength code -->
+  </div>
+  <div id="mesocycle" class="page">
+    <h2>Mesocycles</h2>
+    <!-- Your existing mesocycle code -->
+  </div>
+  <div id="history" class="page">
+    <h2>Workout History</h2>
+    <div class="user-id-input">
+      <label for="history-user_id">User ID:</label>
+      <input type="text" id="history-user_id" placeholder="Enter your ID" required>
+    </div>
+    <table id="history-table">
+      <thead>
+        <tr>
+          <th>Date</th><th>Total Volume</th><th>Notes</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="analytics" class="page">
+    <h2>Analytics</h2>
+    <div class="user-id-input">
+      <label for="analytics-user_id">User ID:</label>
+      <input type="text" id="analytics-user_id" placeholder="Enter your ID" required>
+    </div>
+    <canvas id="e1rmChart"></canvas>
+    <table id="stats-table">
+      <thead>
+        <tr>
+          <th>Lift</th><th>First</th><th>Latest</th><th>Best</th><th>Average</th><th>Progress</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script>
     const API_URL = 'http://localhost:8000'; // Local FastAPI server
 
-    const exercises = ["Lb Squat", "Bench Press", "Deadlift", /* ... */];
-    const muscles = ["Pecs", "Lats", /* ... */];
-    const initialHypertrophy = {/* ... */};
-    const initialStickingPoints = {/* ... */};
-    const suggestions = {/* ... */};
+    const exercises = ["Lb Squat", "Bench Press", "Deadlift"];
+    const muscles = ["Pecs", "Lats", "Quads", "Hamstrings", "Glutes", "Delts", "Biceps", "Triceps"];
+    const initialHypertrophy = {};
+    const initialStickingPoints = {};
+    const suggestions = {};
 
     let setNumber = 0;
 
+    // Workout Log
     function addSet(ex="Exercise", wt="", reps="", rir="", pump="No", felt="", rest=120, e1rm=0) {
       setNumber++;
       const tr = document.createElement("tr");
@@ -232,10 +385,309 @@
       }
     }
 
+    // Daily Log
+    function addDaily(date="", pain="", warm="", tired="", sore="", desire="", notes="") {
+      const tr = document.createElement("tr");
+      tr.className = "daily-row";
+      tr.innerHTML = `
+        <td><input value="${pain}"></td>
+        <td><input value="${warm}"></td>
+        <td><input value="${tired}"></td>
+        <td><input value="${sore}"></td>
+        <td><input value="${desire}"></td>
+        <td><input value="${notes}"></td>
+        <td><button onclick="this.closest('tr').remove()">Remove</button></td>`;
+      document.getElementById("daily-table-body").appendChild(tr);
+    }
+
+    async function saveDaily() {
+      const user_id = document.getElementById("daily-user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID.");
+        return;
+      }
+      const dateInput = document.getElementById("daily-date").value;
+      const dateKey = dateInput || new Date().toISOString().split("T")[0];
+      const rows = document.querySelectorAll("#daily-table-body .daily-row");
+      if (rows.length === 0) {
+        alert("Please add a daily log entry.");
+        return;
+      }
+      const data = {
+        user_id,
+        date: dateKey,
+        pain: rows[0].cells[0].querySelector("input").value,
+        warm: rows[0].cells[1].querySelector("input").value,
+        tired: rows[0].cells[2].querySelector("input").value,
+        sore: rows[0].cells[3].querySelector("input").value,
+        desire: rows[0].cells[4].querySelector("input").value,
+        notes: rows[0].cells[5].querySelector("input").value
+      };
+      try {
+        const response = await fetch(`${API_URL}/daily/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (response.ok) {
+          alert("Daily log saved!");
+          displayDaily(user_id, dateKey);
+        } else {
+          throw new Error('Failed to save daily log');
+        }
+      } catch (error) {
+        console.error("Error saving daily log:", error);
+        alert("Error saving daily log.");
+      }
+    }
+
+    async function displayDaily(user_id, dateKey) {
+      if (!user_id) {
+        alert("Please enter a User ID to view daily logs.");
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/daily/${user_id}/${dateKey}`);
+        const data = await response.json();
+        const tb = document.getElementById("daily-table-body");
+        tb.innerHTML = "";
+        if (data.pain) {
+          addDaily(dateKey, data.pain, data.warm, data.tired, data.sore, data.desire, data.notes);
+        }
+        document.getElementById("daily-date").value = dateKey;
+      } catch (error) {
+        console.error("Error loading daily log:", error);
+        alert("Error loading daily log.");
+      }
+    }
+
+    // Nutrition Log
+    function addNutrition(date="", cals="", weight="", steps="", fat="", carbs="", protein="", sleep="", rhr="", hrv="") {
+      const tr = document.createElement("tr");
+      tr.className = "nutrition-row";
+      tr.innerHTML = `
+        <td><input type="number" value="${cals}"></td>
+        <td><input type="number" value="${weight}"></td>
+        <td><input type="number" value="${steps}"></td>
+        <td><input type="number" value="${fat}"></td>
+        <td><input type="number" value="${carbs}"></td>
+        <td><input type="number" value="${protein}"></td>
+        <td><input type="number" value="${sleep}"></td>
+        <td><input type="number" value="${rhr}"></td>
+        <td><input type="number" value="${hrv}"></td>
+        <td><button onclick="this.closest('tr').remove()">Remove</button></td>`;
+      document.getElementById("nutrition-table-body").appendChild(tr);
+    }
+
+    async function saveNutrition() {
+      const user_id = document.getElementById("nutrition-user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID.");
+        return;
+      }
+      const dateInput = document.getElementById("nutrition-date").value;
+      const dateKey = dateInput || new Date().toISOString().split("T")[0];
+      const rows = document.querySelectorAll("#nutrition-table-body .nutrition-row");
+      if (rows.length === 0) {
+        alert("Please add a nutrition log entry.");
+        return;
+      }
+      const data = {
+        user_id,
+        date: dateKey,
+        calories: parseInt(rows[0].cells[0].querySelector("input").value) || 0,
+        weight: parseFloat(rows[0].cells[1].querySelector("input").value) || 0,
+        steps: parseInt(rows[0].cells[2].querySelector("input").value) || 0,
+        fat: parseInt(rows[0].cells[3].querySelector("input").value) || 0,
+        carbs: parseInt(rows[0].cells[4].querySelector("input").value) || 0,
+        protein: parseInt(rows[0].cells[5].querySelector("input").value) || 0,
+        sleep: parseFloat(rows[0].cells[6].querySelector("input").value) || 0,
+        rhr: parseInt(rows[0].cells[7].querySelector("input").value) || 0,
+        hrv: parseInt(rows[0].cells[8].querySelector("input").value) || 0
+      };
+      try {
+        const response = await fetch(`${API_URL}/nutrition/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (response.ok) {
+          alert("Nutrition log saved!");
+          displayNutrition(user_id, dateKey);
+        } else {
+          throw new Error('Failed to save nutrition log');
+        }
+      } catch (error) {
+        console.error("Error saving nutrition log:", error);
+        alert("Error saving nutrition log.");
+      }
+    }
+
+    async function displayNutrition(user_id, dateKey) {
+      if (!user_id) {
+        alert("Please enter a User ID to view nutrition logs.");
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/nutrition/${user_id}/${dateKey}`);
+        const data = await response.json();
+        const tb = document.getElementById("nutrition-table-body");
+        tb.innerHTML = "";
+        if (data.calories) {
+          addNutrition(dateKey, data.calories, data.weight, data.steps, data.fat, data.carbs, data.protein, data.sleep, data.rhr, data.hrv);
+        }
+        document.getElementById("nutrition-date").value = dateKey;
+      } catch (error) {
+        console.error("Error loading nutrition log:", error);
+        alert("Error loading nutrition log.");
+      }
+    }
+
+    // Cardio Log
+    function addCardio(date="", exercise="", minutes="", speed="", incline="", hr_avg="") {
+      const tr = document.createElement("tr");
+      tr.className = "cardio-row";
+      tr.innerHTML = `
+        <td><input value="${exercise}"></td>
+        <td><input type="number" value="${minutes}"></td>
+        <td><input type="number" value="${speed}"></td>
+        <td><input type="number" value="${incline}"></td>
+        <td><input type="number" value="${hr_avg}"></td>
+        <td><button onclick="this.closest('tr').remove()">Remove</button></td>`;
+      document.getElementById("cardio-table-body").appendChild(tr);
+    }
+
+    async function saveCardio() {
+      const user_id = document.getElementById("cardio-user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID.");
+        return;
+      }
+      const dateInput = document.getElementById("cardio-date").value;
+      const dateKey = dateInput || new Date().toISOString().split("T")[0];
+      const rows = document.querySelectorAll("#cardio-table-body .cardio-row");
+      for (const row of rows) {
+        const data = {
+          user_id,
+          date: dateKey,
+          exercise: row.cells[0].querySelector("input").value,
+          minutes: parseInt(row.cells[1].querySelector("input").value) || 0,
+          speed: parseFloat(row.cells[2].querySelector("input").value) || 0,
+          incline: parseFloat(row.cells[3].querySelector("input").value) || 0,
+          hr_avg: parseInt(row.cells[4].querySelector("input").value) || 0
+        };
+        try {
+          const response = await fetch(`${API_URL}/cardio/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          if (!response.ok) {
+            throw new Error('Failed to save cardio log');
+          }
+        } catch (error) {
+          console.error("Error saving cardio log:", error);
+          alert("Error saving cardio log.");
+          return;
+        }
+      }
+      alert("Cardio log saved!");
+      displayCardio(user_id, dateKey);
+    }
+
+    async function displayCardio(user_id, dateKey) {
+      if (!user_id) {
+        alert("Please enter a User ID to view cardio logs.");
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/cardio/${user_id}/${dateKey}`);
+        const data = await response.json();
+        const tb = document.getElementById("cardio-table-body");
+        tb.innerHTML = "";
+        data.forEach(r => {
+          addCardio(dateKey, r.exercise, r.minutes, r.speed, r.incline, r.hr_avg);
+        });
+        document.getElementById("cardio-date").value = dateKey;
+      } catch (error) {
+        console.error("Error loading cardio log:", error);
+        alert("Error loading cardio log.");
+      }
+    }
+
+    // Performance Log
+    function addPerformance(date="", lift="", e1rm="", status="") {
+      const tr = document.createElement("tr");
+      tr.className = "performance-row";
+      tr.innerHTML = `
+        <td><input value="${lift}"></td>
+        <td><input type="number" value="${e1rm}"></td>
+        <td><input value="${status}"></td>
+        <td><button onclick="this.closest('tr').remove()">Remove</button></td>`;
+      document.getElementById("performance-table-body").appendChild(tr);
+    }
+
+    async function savePerformance() {
+      const user_id = document.getElementById("performance-user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID.");
+        return;
+      }
+      const dateInput = document.getElementById("performance-date").value;
+      const dateKey = dateInput || new Date().toISOString().split("T")[0];
+      const rows = document.querySelectorAll("#performance-table-body .performance-row");
+      for (const row of rows) {
+        const data = {
+          user_id,
+          date: dateKey,
+          lift: row.cells[0].querySelector("input").value,
+          e1rm: parseFloat(row.cells[1].querySelector("input").value) || 0,
+          status: row.cells[2].querySelector("input").value
+        };
+        try {
+          const response = await fetch(`${API_URL}/performance/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          if (!response.ok) {
+            throw new Error('Failed to save performance log');
+          }
+        } catch (error) {
+          console.error("Error saving performance log:", error);
+          alert("Error saving performance log.");
+          return;
+        }
+      }
+      alert("Performance log saved!");
+      displayPerformance(user_id, dateKey);
+    }
+
+    async function displayPerformance(user_id, dateKey) {
+      if (!user_id) {
+        alert("Please enter a User ID to view performance logs.");
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/performance/${user_id}/${dateKey}`);
+        const data = await response.json();
+        const tb = document.getElementById("performance-table-body");
+        tb.innerHTML = "";
+        data.forEach(r => {
+          addPerformance(dateKey, r.lift, r.e1rm, r.status);
+        });
+        document.getElementById("performance-date").value = dateKey;
+      } catch (error) {
+        console.error("Error loading performance log:", error);
+        alert("Error loading performance log.");
+      }
+    }
+
+    // History and Analytics
     async function loadHistory() {
       const tb = document.querySelector("#history-table tbody");
       tb.innerHTML = "";
-      const user_id = document.getElementById("user_id").value;
+      const user_id = document.getElementById("history-user_id").value;
       if (!user_id) {
         alert("Please enter a User ID to view history.");
         return;
@@ -303,7 +755,7 @@
 
     let e1rmChart;
     async function loadAnalytics() {
-      const user_id = document.getElementById("user_id").value;
+      const user_id = document.getElementById("analytics-user_id").value;
       if (!user_id) {
         alert("Please enter a User ID to view analytics.");
         return;
@@ -337,6 +789,19 @@
       }
     }
 
+    // Placeholder functions for other pages
+    function loadProgress() {}
+    function loadHypertrophy() {}
+    function loadStrength() {}
+    function loadRepMax() {}
+    function loadStickingPoints() {}
+    function loadMesocycle() {}
+    function calc1RM() {}
+    function calcBMI() {}
+    function calcBMR() {}
+    function calcMacros() {}
+    function calcWilks() {}
+
     function showPage(id) {
       document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
       document.getElementById(id).classList.add("active");
@@ -347,6 +812,10 @@
       if (id === "strength") { loadStrength(); loadRepMax(); loadStickingPoints(); }
       if (id === "mesocycle") loadMesocycle();
       if (id === "workout") setWorkoutDate();
+      if (id === "daily") setDailyDate();
+      if (id === "nutrition") setNutritionDate();
+      if (id === "cardio") setCardioDate();
+      if (id === "performance") setPerformanceDate();
     }
 
     function setWorkoutDate() {
@@ -354,55 +823,38 @@
       document.getElementById("workout-date").value = today;
     }
 
-    function addDaily(date="",pain="",warm="",tired="",sore="",desire="",notes="") {
-      // Your existing addDaily function unchanged
+    function setDailyDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("daily-date").value = today;
     }
-    function saveDaily() {
-      // Your existing saveDaily function unchanged
+
+    function setNutritionDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("nutrition-date").value = today;
     }
-    // ... Other unchanged functions: addNutrition, saveNutrition, addCardio, saveCardio,
-    // addPerformance, savePerformance, loadRepMax, saveRepMax, loadStickingPoints,
-    // saveStickingPoints, loadHypertrophy, saveHypertrophy, loadStrength, saveStrength,
-    // loadMesocycle, saveMesocycle, loadProgress, calc1RM, calcBMI, calcBMR, calcMacros,
-    // calcWilks
+
+    function setCardioDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("cardio-date").value = today;
+    }
+
+    function setPerformanceDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("performance-date").value = today;
+    }
 
     window.onload = function() {
       setWorkoutDate();
+      setDailyDate();
+      setNutritionDate();
+      setCardioDate();
+      setPerformanceDate();
       addSet("Lowbar Squat", 315, 5, 2, "No", "Quads", 120, 354);
+      addDaily("", "Mild discomfort", "Light", "A little tired", "Mild soreness", "High", "Upper");
+      addNutrition("", 2500, 180, 10000, 80, 300, 150, 7.5, 60, 50);
+      addCardio("", "Treadmill", 30, 3, 3, 122);
+      addPerformance("", "Squat", 354, "Good");
       calculateAll();
-      let daily = JSON.parse(localStorage.getItem("daily-log") || "[]");
-      if (daily.length === 0) {
-        addDaily("", "Mild discomfort", "Light", "A little tired", "Mild soreness", "High", "Upper");
-        addDaily("", "Mild discomfort", "Did not train", "A little tired", "Mild soreness", "Average", "Lower");
-        addDaily("", "Local joint pain discomfort", "Light", "A little tired", "Feel great", "High", "Push");
-        addDaily("", "Local joint pain discomfort", "Heavy", "Tired on average", "Mild soreness", "Low", "Pull");
-        addDaily("", "", "", "", "", "", "Rest day");
-        daily = [
-          {date: "", pain: "Mild discomfort", warm: "Light", tired: "A little tired", sore: "Mild soreness", desire: "High", notes: "Upper"},
-          {date: "", pain: "Mild discomfort", warm: "Did not train", tired: "A little tired", sore: "Mild soreness", desire: "Average", notes: "Lower"},
-          {date: "", pain: "Local joint pain discomfort", warm: "Light", tired: "A little tired", sore: "Feel great", desire: "High", notes: "Push"},
-          {date: "", pain: "Local joint pain discomfort", warm: "Heavy", tired: "Tired on average", sore: "Mild soreness", desire: "Low", notes: "Pull"},
-          {date: "", pain: "", warm: "", tired: "", sore: "", desire: "", notes: "Rest day"}
-        ];
-        localStorage.setItem("daily-log", JSON.stringify(daily));
-      } else {
-        daily.forEach(d => addDaily(d.date, d.pain, d.warm, d.tired, d.sore, d.desire, d.notes));
-      }
-      const nutrition = JSON.parse(localStorage.getItem("nutrition-log") || "[]");
-      nutrition.forEach(n => addNutrition(n.date, n.cals, n.weight, n.steps, n.fat, n.carbs, n.protein, n.sleep, n.rhr, n.hrv));
-      const perf = JSON.parse(localStorage.getItem("performance-log") || "[]");
-      perf.forEach(p => addPerformance(p.date, p.lift, p.e1rm, p.status));
-      const cardio = JSON.parse(localStorage.getItem("cardio-log") || "[]");
-      if (cardio.length === 0) {
-        addCardio("2025-02-03", "Treadmill", 30, 3, 3, 122);
-        localStorage.setItem("cardio-log", JSON.stringify([{date: "2025-02-03", exercise: "Treadmill", minutes: 30, speed: 3, incline: 3, hrAvg: 122}]));
-      } else {
-        cardio.forEach(c => addCardio(c.date, c.exercise, c.minutes, c.speed, c.incline, c.hrAvg));
-      }
-      document.getElementById("user_id").addEventListener("change", (e) => {
-        const dateKey = document.getElementById("workout-date").value || new Date().toISOString().split("T")[0];
-        displayWorkouts(e.target.value, dateKey);
-      });
     };
   </script>
 </body>
