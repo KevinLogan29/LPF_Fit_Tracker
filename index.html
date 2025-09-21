@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Your existing <head> with styles unchanged -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Limitless Performance and Fitness</title>
@@ -21,14 +20,12 @@
     button:hover { background:#7ed957; color:black; }
     #total-volume { font-weight:bold; }
     .calc-section { margin-bottom: 30px; padding: 15px; border: 1px solid #7ed957; border-radius: 4px; }
-    .calc-section h3 { margin-top: 0; }
     .result { font-weight: bold; background: #111; padding: 10px; margin-top: 10px; border-radius: 4px; }
     .delta { color: #7ed957; }
     .delta.positive { color: #7ed957; }
     .delta.negative { color: #d9577e; }
     .notes { background: #111; padding: 10px; margin: 10px 0; border-radius: 4px; border:1px solid #7ed957; }
-    .date-input { width: auto; display: inline-block; margin-bottom: 10px; }
-    .member-id-input { margin-bottom: 10px; }
+    .date-input, .user-id-input { margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -50,12 +47,11 @@
     <a href="#" onclick="showPage('analytics')">Analytics</a>
   </nav>
 
-  <!-- Workout Log (Updated with memberId and Firestore) -->
   <div id="workout" class="page active">
     <h2>Workout Log</h2>
-    <div class="member-id-input">
-      <label for="memberId">Member ID (e.g., email):</label>
-      <input type="text" id="memberId" placeholder="Enter your ID" required>
+    <div class="user-id-input">
+      <label for="user_id">User ID (e.g., email):</label>
+      <input type="text" id="user_id" placeholder="Enter your ID" required>
     </div>
     <div class="date-input">
       <label for="workout-date">Date:</label>
@@ -96,32 +92,17 @@
   <div id="history" class="page">...</div>
   <div id="analytics" class="page">...</div>
 
-  <!-- Libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-  <script type="module">
-    // Firebase imports
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+  <script>
+    const API_URL = 'http://localhost:8000'; // Local FastAPI server
 
-    // Firebase config (replace with your Firebase project config)
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      // ... other fields from Firebase Console
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const exercises = ["Lb Squat", "Bench Press", "Deadlift", /* ... */];
+    const muscles = ["Pecs", "Lats", /* ... */];
+    const initialHypertrophy = {/* ... */};
+    const initialStickingPoints = {/* ... */};
+    const suggestions = {/* ... */};
 
-    // Your existing arrays unchanged
-    const exercises = ["Lb Squat", "Bench Press", "Deadlift", /* ... rest unchanged */];
-    const muscles = ["Pecs", "Lats", /* ... rest unchanged */];
-    const initialHypertrophy = {/* Your initialHypertrophy object unchanged */};
-    const initialStickingPoints = {/* Your initialStickingPoints object unchanged */};
-    const suggestions = {/* Your suggestions object unchanged */};
-
-    /* -------------------- WORKOUT -------------------- */
     let setNumber = 0;
 
     function addSet(ex="Exercise", wt="", reps="", rir="", pump="No", felt="", rest=120, e1rm=0) {
@@ -185,134 +166,177 @@
     }
 
     async function saveWorkout() {
-      const memberId = document.getElementById("memberId").value;
-      if (!memberId) {
-        alert("Please enter a Member ID.");
+      const user_id = document.getElementById("user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID.");
         return;
       }
       const rows = [];
       document.querySelectorAll("#table-body .set-row").forEach(r => {
         rows.push({
           exercise: r.cells[0].querySelector("input").value,
-          set: r.cells[1].textContent,
-          weight: r.cells[2].querySelector("input").value,
-          reps: r.cells[4].querySelector("input").value,
-          rir: r.cells[5].querySelector("input").value,
+          set_number: parseInt(r.cells[1].textContent),
+          weight: parseFloat(r.cells[2].querySelector("input").value) || 0,
+          reps: parseInt(r.cells[4].querySelector("input").value) || 0,
+          rir: parseInt(r.cells[5].querySelector("input").value) || 0,
           pump: r.cells[6].querySelector("select").value,
           felt: r.cells[7].querySelector("input").value,
-          rest: r.cells[8].querySelector("input").value,
-          e1rm: r.cells[9].querySelector("span").textContent
+          rest: parseInt(r.cells[8].querySelector("input").value) || 0,
+          e1rm: parseFloat(r.cells[9].querySelector("span").textContent) || 0
         });
       });
       const notes = document.getElementById("notes").value;
       const dateInput = document.getElementById("workout-date").value;
       const dateKey = dateInput || new Date().toISOString().split("T")[0];
       try {
-        await addDoc(collection(db, `workouts_${memberId}`), {
-          rows,
-          notes,
-          date: dateKey,
-          timestamp: new Date().toISOString()
+        const response = await fetch(`${API_URL}/workouts/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id, date: dateKey, rows, notes })
         });
-        alert("Workout saved to Firestore!");
-        displayWorkouts(memberId, dateKey);
+        if (response.ok) {
+          alert("Workout saved!");
+          displayWorkouts(user_id, dateKey);
+        } else {
+          throw new Error('Failed to save workout');
+        }
       } catch (error) {
         console.error("Error saving workout:", error);
         alert("Error saving workout.");
       }
     }
 
-    async function displayWorkouts(memberId, dateKey) {
-      if (!memberId) {
-        alert("Please enter a Member ID to view workouts.");
+    async function displayWorkouts(user_id, dateKey) {
+      if (!user_id) {
+        alert("Please enter a User ID to view workouts.");
         return;
       }
-      const q = query(collection(db, `workouts_${memberId}`), where("date", "==", dateKey), orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-      const tb = document.getElementById("table-body");
-      tb.innerHTML = "";
-      setNumber = 0;
-      let vol = 0, sets = 0;
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        d.rows.forEach(r => {
+      try {
+        const response = await fetch(`${API_URL}/workouts/${user_id}/${dateKey}`);
+        const data = await response.json();
+        const tb = document.getElementById("table-body");
+        tb.innerHTML = "";
+        setNumber = 0;
+        let vol = 0, sets = 0;
+        data.rows.forEach(r => {
           addSet(r.exercise, r.weight, r.reps, r.rir, r.pump, r.felt, r.rest, r.e1rm);
-          vol += (+r.weight || 0) * (+r.reps || 0);
+          vol += (r.weight || 0) * (r.reps || 0);
           sets++;
         });
-        document.getElementById("notes").value = d.notes || "";
-        document.getElementById("workout-date").value = d.date;
-      });
-      document.getElementById("total-volume").innerHTML = `Total Volume: ${vol} lbs | Total Sets: ${sets} | Volume Category: ${getVolumeCategory(sets)}`;
+        document.getElementById("notes").value = data.notes || "";
+        document.getElementById("workout-date").value = dateKey;
+        document.getElementById("total-volume").innerHTML = `Total Volume: ${vol} lbs | Total Sets: ${sets} | Volume Category: ${getVolumeCategory(sets)}`;
+      } catch (error) {
+        console.error("Error loading workouts:", error);
+        alert("Error loading workouts.");
+      }
     }
 
-    /* -------------------- HISTORY (Updated for Firestore) -------------------- */
     async function loadHistory() {
       const tb = document.querySelector("#history-table tbody");
       tb.innerHTML = "";
-      const memberId = document.getElementById("memberId").value;
-      if (!memberId) {
-        alert("Please enter a Member ID to view history.");
+      const user_id = document.getElementById("user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID to view history.");
         return;
       }
-      const q = query(collection(db, `workouts_${memberId}`), orderBy("date", "desc"));
-      const snapshot = await getDocs(q);
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const vol = d.rows.reduce((sum, r) => sum + (+r.weight * +r.reps), 0);
-        tb.innerHTML += `<tr>
-          <td>${d.date}</td>
-          <td>${Math.round(vol)}</td>
-          <td>${d.notes || ""}</td>
-          <td>
-            <button onclick="loadSpecific('${memberId}', '${d.date}')">View</button>
-            <button onclick="downloadCSV('${memberId}', '${d.date}')">CSV</button>
-            <button onclick="deleteWorkout('${memberId}', '${doc.id}')">Delete</button>
-          </td>
-        </tr>`;
-      });
+      try {
+        const response = await fetch(`${API_URL}/workouts/history/${user_id}`);
+        const data = await response.json();
+        data.forEach(d => {
+          tb.innerHTML += `<tr>
+            <td>${d.date}</td>
+            <td>${Math.round(d.total_volume)}</td>
+            <td>${d.notes || ""}</td>
+            <td>
+              <button onclick="loadSpecific('${user_id}', '${d.date}')">View</button>
+              <button onclick="downloadCSV('${user_id}', '${d.date}')">CSV</button>
+              <button onclick="deleteWorkout('${user_id}', '${d.date}')">Delete</button>
+            </td>
+          </tr>`;
+        });
+      } catch (error) {
+        console.error("Error loading history:", error);
+        alert("Error loading history.");
+      }
     }
 
-    async function loadSpecific(memberId, dateKey) {
-      const q = query(collection(db, `workouts_${memberId}`), where("date", "==", dateKey));
-      const snapshot = await getDocs(q);
-      const tb = document.getElementById("table-body");
-      tb.innerHTML = "";
-      setNumber = 0;
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        d.rows.forEach(r => addSet(r.exercise, r.weight, r.reps, r.rir, r.pump, r.felt, r.rest, r.e1rm));
-        document.getElementById("notes").value = d.notes;
-        document.getElementById("workout-date").value = d.date;
-      });
+    async function loadSpecific(user_id, dateKey) {
+      displayWorkouts(user_id, dateKey);
       showPage("workout");
     }
 
-    async function downloadCSV(memberId, dateKey) {
-      const q = query(collection(db, `workouts_${memberId}`), where("date", "==", dateKey));
-      const snapshot = await getDocs(q);
-      let csv = "Exercise,Set,Weight,Delta,Reps,RIR,Pump,Felt,Rest,e1RM\n";
-      snapshot.forEach(doc => {
-        const d = doc.data();
+    async function downloadCSV(user_id, dateKey) {
+      try {
+        const response = await fetch(`${API_URL}/workouts/${user_id}/${dateKey}`);
+        const d = await response.json();
+        let csv = "Exercise,Set,Weight,Delta,Reps,RIR,Pump,Felt,Rest,e1RM\n";
         d.rows.forEach(r => {
-          csv += `${r.exercise},${r.set},${r.weight},,${r.reps},${r.rir},${r.pump},${r.felt},${r.rest},${r.e1rm}\n`;
+          csv += `${r.exercise},${r.set_number},${r.weight},,${r.reps},${r.rir},${r.pump},${r.felt},${r.rest},${r.e1rm}\n`;
         });
         csv += `Notes:,${(d.notes || "").replace(/[\n\r]/g, " ")}\n`;
-      });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-      link.download = `${dateKey}-workout.csv`;
-      link.click();
-    }
-
-    async function deleteWorkout(memberId, docId) {
-      if (confirm("Delete this workout?")) {
-        await deleteDoc(doc(db, `workouts_${memberId}`, docId));
-        loadHistory();
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+        link.download = `${dateKey}-workout.csv`;
+        link.click();
+      } catch (error) {
+        console.error("Error downloading CSV:", error);
+        alert("Error downloading CSV.");
       }
     }
 
-    /* -------------------- Your Existing Functions (Unchanged) -------------------- */
+    async function deleteWorkout(user_id, dateKey) {
+      if (confirm("Delete this workout?")) {
+        try {
+          const response = await fetch(`${API_URL}/workouts/${user_id}/${dateKey}`, { method: 'DELETE' });
+          if (response.ok) {
+            loadHistory();
+          } else {
+            throw new Error('Failed to delete workout');
+          }
+        } catch (error) {
+          console.error("Error deleting workout:", error);
+          alert("Error deleting workout.");
+        }
+      }
+    }
+
+    let e1rmChart;
+    async function loadAnalytics() {
+      const user_id = document.getElementById("user_id").value;
+      if (!user_id) {
+        alert("Please enter a User ID to view analytics.");
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/analytics/e1rm/${user_id}`);
+        const { lifts, stats } = await response.json();
+        const ctx = document.getElementById("e1rmChart").getContext("2d");
+        if (e1rmChart) e1rmChart.destroy();
+        e1rmChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            datasets: Object.keys(lifts).map((l, i) => ({
+              label: l,
+              data: lifts[l].map(d => ({ x: new Date(d.date), y: d.e1rm })),
+              borderColor: ["#7ed957", "#57c7d9", "#d9577e"][i],
+              tension: 0.3
+            }))
+          },
+          options: { scales: { x: { type: "time", time: { unit: "day" } }, y: { title: { display: true, text: "e1RM" } } } }
+        });
+        const tb = document.querySelector("#stats-table tbody");
+        tb.innerHTML = "";
+        Object.keys(stats).forEach(l => {
+          const s = stats[l];
+          tb.innerHTML += `<tr><td>${l}</td><td>${s.first}</td><td>${s.latest}</td><td>${s.best}</td><td>${s.average.toFixed(1)}</td><td>${s.progress.toFixed(1)}%</td></tr>`;
+        });
+      } catch (error) {
+        console.error("Error loading analytics:", error);
+        alert("Error loading analytics.");
+      }
+    }
+
     function showPage(id) {
       document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
       document.getElementById(id).classList.add("active");
@@ -340,9 +364,8 @@
     // addPerformance, savePerformance, loadRepMax, saveRepMax, loadStickingPoints,
     // saveStickingPoints, loadHypertrophy, saveHypertrophy, loadStrength, saveStrength,
     // loadMesocycle, saveMesocycle, loadProgress, calc1RM, calcBMI, calcBMR, calcMacros,
-    // calcWilks, loadAnalytics
+    // calcWilks
 
-    /* -------------------- INIT -------------------- */
     window.onload = function() {
       setWorkoutDate();
       addSet("Lowbar Squat", 315, 5, 2, "No", "Quads", 120, 354);
@@ -376,10 +399,8 @@
       } else {
         cardio.forEach(c => addCardio(c.date, c.exercise, c.minutes, c.speed, c.incline, c.hrAvg));
       }
-      // Add event listener for memberId change to load workouts
-      document.getElementById("memberId").addEventListener("change", (e) => {
-        const dateInput = document.getElementById("workout-date").value;
-        const dateKey = dateInput || new Date().toISOString().split("T")[0];
+      document.getElementById("user_id").addEventListener("change", (e) => {
+        const dateKey = document.getElementById("workout-date").value || new Date().toISOString().split("T")[0];
         displayWorkouts(e.target.value, dateKey);
       });
     };
