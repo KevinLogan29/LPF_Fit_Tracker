@@ -6,30 +6,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Limitless Performance and Fitness</title>
   <style>
-    /* Your existing styles unchanged */
     body { font-family: Arial, sans-serif; margin: 0; background:black; color:#7ed957; }
-    /* ... rest of your styles ... */
+    header { background:black; border-bottom:2px solid #7ed957; padding:10px; text-align:center; }
+    nav { display:flex; justify-content:center; gap:10px; padding:10px; border-bottom:1px solid #7ed957; flex-wrap:wrap; }
+    nav a { color:#7ed957; text-decoration:none; padding:5px 10px; border:1px solid #7ed957; border-radius:4px; }
+    nav a:hover { background:#7ed957; color:black; }
+    .page { display:none; padding:20px; }
+    .active { display:block; }
+    table { width:100%; border-collapse:collapse; margin-bottom:20px; border:1px solid #7ed957; }
+    th,td { border:1px solid #7ed957; padding:6px; text-align:left; color:#7ed957; background:black; }
+    th { background:black; }
+    input, select, textarea { width:100%; padding:5px; box-sizing:border-box; background:black; color:#7ed957; border:1px solid #7ed957; }
+    button { background:black; color:#7ed957; padding:6px 10px; border:1px solid #7ed957; border-radius:4px; cursor:pointer; }
+    button:hover { background:#7ed957; color:black; }
+    #total-volume { font-weight:bold; }
+    .calc-section { margin-bottom: 30px; padding: 15px; border: 1px solid #7ed957; border-radius: 4px; }
+    .calc-section h3 { margin-top: 0; }
+    .result { font-weight: bold; background: #111; padding: 10px; margin-top: 10px; border-radius: 4px; }
+    .delta { color: #7ed957; }
+    .delta.positive { color: #7ed957; }
+    .delta.negative { color: #d9577e; }
+    .notes { background: #111; padding: 10px; margin: 10px 0; border-radius: 4px; border:1px solid #7ed957; }
+    .date-input { width: auto; display: inline-block; margin-bottom: 10px; }
+    .member-id-input { margin-bottom: 10px; }
   </style>
 </head>
 <body>
-  <!-- Your existing header and nav unchanged -->
   <header>
     <h1>Limitless Performance and Fitness</h1>
   </header>
   <nav>
-    <!-- Your nav links unchanged -->
+    <a href="#" onclick="showPage('workout')">Workout Log</a>
+    <a href="#" onclick="showPage('daily')">Daily Comments</a>
+    <a href="#" onclick="showPage('nutrition')">Nutrition</a>
+    <a href="#" onclick="showPage('cardio')">Cardio</a>
+    <a href="#" onclick="showPage('performance')">Performance</a>
+    <a href="#" onclick="showPage('calculators')">Calculators</a>
+    <a href="#" onclick="showPage('progress')">Weekly Progress</a>
+    <a href="#" onclick="showPage('hypertrophy')">Hypertrophy Blocks</a>
+    <a href="#" onclick="showPage('strength')">Strength Blocks</a>
+    <a href="#" onclick="showPage('mesocycle')">Mesocycles</a>
+    <a href="#" onclick="showPage('history')">Workout History</a>
+    <a href="#" onclick="showPage('analytics')">Analytics</a>
   </nav>
 
-  <!-- Workout Log (Updated for Firestore) -->
+  <!-- Workout Log (Updated with memberId and Firestore) -->
   <div id="workout" class="page active">
     <h2>Workout Log</h2>
+    <div class="member-id-input">
+      <label for="memberId">Member ID (e.g., email):</label>
+      <input type="text" id="memberId" placeholder="Enter your ID" required>
+    </div>
     <div class="date-input">
       <label for="workout-date">Date:</label>
       <input type="date" id="workout-date">
-    </div>
-    <div>
-      <label for="memberId">Member ID:</label>
-      <input type="text" id="memberId" placeholder="Member ID (e.g., email)" required>
     </div>
     <table id="workout-table">
       <thead>
@@ -53,7 +83,7 @@
     <textarea id="notes" rows="4" placeholder="Additional notes..."></textarea>
   </div>
 
-  <!-- Other pages (Daily, Nutrition, Cardio, etc.) unchanged -->
+  <!-- Other pages unchanged -->
   <div id="daily" class="page">...</div>
   <div id="nutrition" class="page">...</div>
   <div id="cardio" class="page">...</div>
@@ -66,13 +96,20 @@
   <div id="history" class="page">...</div>
   <div id="analytics" class="page">...</div>
 
-  <!-- Libs (Add Firebase CDN for simplicity, or use npm) -->
+  <!-- Libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-  <script type="module">
+  <script type="module">const firebaseConfig = {
+  apiKey: "AIzaSyBaXjai_t_NWK5CPbpRt3wi3mHnU-YK_Vc",
+  authDomain: "training-log-a8584.firebaseapp.com",
+  projectId: "training-log-a8584",
+  storageBucket: "training-log-a8584.firebasestorage.app",
+  messagingSenderId: "737578806489",
+  appId: "1:737578806489:web:c9cec3ad0148e5d1f162c8",
+  measurementId: "G-PJJLKHTBLM" };
     // Firebase imports
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
     // Firebase config (replace with your Firebase project config)
     const firebaseConfig = {
@@ -84,12 +121,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Your existing arrays (exercises, muscles, etc.) unchanged
-    const exercises = [/* Your exercises array */];
-    const muscles = [/* Your muscles array */];
-    const initialHypertrophy = {/* Your initialHypertrophy object */};
-    const initialStickingPoints = {/* Your initialStickingPoints object */};
-    const suggestions = {/* Your suggestions object */};
+    // Your existing arrays unchanged
+    const exercises = ["Lb Squat", "Bench Press", "Deadlift", /* ... rest unchanged */];
+    const muscles = ["Pecs", "Lats", /* ... rest unchanged */];
+    const initialHypertrophy = {/* Your initialHypertrophy object unchanged */};
+    const initialStickingPoints = {/* Your initialStickingPoints object unchanged */};
+    const suggestions = {/* Your suggestions object unchanged */};
 
     /* -------------------- WORKOUT -------------------- */
     let setNumber = 0;
@@ -193,6 +230,10 @@
     }
 
     async function displayWorkouts(memberId, dateKey) {
+      if (!memberId) {
+        alert("Please enter a Member ID to view workouts.");
+        return;
+      }
       const q = query(collection(db, `workouts_${memberId}`), where("date", "==", dateKey), orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
       const tb = document.getElementById("table-body");
@@ -302,83 +343,17 @@
     function saveDaily() {
       // Your existing saveDaily function unchanged
     }
-    function addNutrition(date="",cals="",weight="",steps="",fat="",carbs="",protein="",sleep="",rhr="",hrv="") {
-      // Your existing addNutrition function unchanged
-    }
-    function saveNutrition() {
-      // Your existing saveNutrition function unchanged
-    }
-    function addCardio(date="", exercise="", minutes="", speed="", incline="", hrAvg="") {
-      // Your existing addCardio function unchanged
-    }
-    function saveCardio() {
-      // Your existing saveCardio function unchanged
-    }
-    function addPerformance(date="",lift="",e1rm="",status="") {
-      // Your existing addPerformance function unchanged
-    }
-    function savePerformance() {
-      // Your existing savePerformance function unchanged
-    }
-    function loadRepMax() {
-      // Your existing loadRepMax function unchanged
-    }
-    function saveRepMax() {
-      // Your existing saveRepMax function unchanged
-    }
-    function loadStickingPoints() {
-      // Your existing loadStickingPoints function unchanged
-    }
-    function saveStickingPoints() {
-      // Your existing saveStickingPoints function unchanged
-    }
-    function loadHypertrophy() {
-      // Your existing loadHypertrophy function unchanged
-    }
-    function saveHypertrophy() {
-      // Your existing saveHypertrophy function unchanged
-    }
-    function loadStrength() {
-      // Your existing loadStrength function unchanged
-    }
-    function saveStrength() {
-      // Your existing saveStrength function unchanged
-    }
-    function loadMesocycle() {
-      // Your existing loadMesocycle function unchanged
-    }
-    function saveMesocycle() {
-      // Your existing saveMesocycle function unchanged
-    }
-    function loadProgress() {
-      // Your existing loadProgress function unchanged
-    }
-    function calc1RM() {
-      // Your existing calc1RM function unchanged
-    }
-    function calcBMI() {
-      // Your existing calcBMI function unchanged
-    }
-    function calcBMR() {
-      // Your existing calcBMR function unchanged
-    }
-    function calcMacros() {
-      // Your existing calcMacros function unchanged
-    }
-    function calcWilks() {
-      // Your existing calcWilks function unchanged
-    }
-    let e1rmChart;
-    function loadAnalytics() {
-      // Your existing loadAnalytics function unchanged
-    }
+    // ... Other unchanged functions: addNutrition, saveNutrition, addCardio, saveCardio,
+    // addPerformance, savePerformance, loadRepMax, saveRepMax, loadStickingPoints,
+    // saveStickingPoints, loadHypertrophy, saveHypertrophy, loadStrength, saveStrength,
+    // loadMesocycle, saveMesocycle, loadProgress, calc1RM, calcBMI, calcBMR, calcMacros,
+    // calcWilks, loadAnalytics
 
     /* -------------------- INIT -------------------- */
     window.onload = function() {
       setWorkoutDate();
       addSet("Lowbar Squat", 315, 5, 2, "No", "Quads", 120, 354);
       calculateAll();
-      // Your existing initialization for other logs unchanged
       let daily = JSON.parse(localStorage.getItem("daily-log") || "[]");
       if (daily.length === 0) {
         addDaily("", "Mild discomfort", "Light", "A little tired", "Mild soreness", "High", "Upper");
@@ -418,4 +393,5 @@
   </script>
 </body>
 </html>
+
 
