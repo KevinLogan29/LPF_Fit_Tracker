@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limitless Performance and Fitness</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: black; 
+            color: #7ed957;
+        }
+        h1, h2 { 
+            color: #7ed957; 
+        }
+        .section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: black; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            border: 1px solid #7ed957;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+            border: 1px solid #7ed957;
+        }
+        th, td { 
+            border: 1px solid #7ed957; 
+            padding: 8px; 
+            text-align: left; 
+            color: #7ed957;
+            background-color: black;
+        }
+        th { 
+            background-color: black; 
+            color: #7ed957;
+        }
+        input, select { 
+            width: 100%; 
+            padding: 5px; 
+            box-sizing: border-box; 
+            background-color: black; 
+            color: #7ed957;
+            border: 1px solid #7ed957;
+        }
+        input::placeholder {
+            color: #7ed957;
+        }
+        select option {
+            background-color: black;
+            color: #7ed957;
+        }
+        button { 
+            background: black; 
+            color: #7ed957; 
+            padding: 10px; 
+            border: 1px solid #7ed957;
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #7ed957; 
+            color: black;
+        }
+        .set-row { 
+            background-color: black; 
+        }
+        #total-volume { 
+            font-weight: bold; 
+            color: #7ed957;
+        }
+        textarea {
+            background-color: black;
+            color: #7ed957;
+            border: 1px solid #7ed957;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Limitless Performance and Fitness</h1>
+    
+    <div class="section">
+        <table id="workout-table">
+            <thead>
+                <tr>
+                    <th>Exercise</th>
+                    <th>Sets</th>
+                    <th>Weight (lbs)</th>
+                    <th>Reps</th>
+                    <th>RIR (0-4)</th>
+                    <th>Pump (Yes/No)</th>
+                    <th>Felt in Target Muscle</th>
+                    <th>Rest Time (sec)</th>
+                    <th>Estimated 1RM</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Updated row with provided data -->
+                <tr class="set-row">
+                    <td><input type="text" value="Lowbar Squats" onchange="calculateAll()"></td>
+                    <td>1</td>
+                    <td><input type="number" value="315" onchange="calculateAll()"></td>
+                    <td><input type="number" value="5" onchange="calculateAll()"></td>
+                    <td><input type="number" value="2" onchange="calculateAll()"></td>
+                    <td><select onchange="calculateAll()"><option selected>No</option><option>Yes</option></select></td>
+                    <td><input type="text" value="Mostly Quads"></td>
+                    <td><input type="number" value="120" onchange="calculateAll()"></td>
+                    <td id="e1rm-1"><span>354</span></td>
+                    <td><button onclick="removeRow(this)">Remove</button></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="8" id="total-volume">Total Volume: 1575 lbs | Total Sets: 1</td>
+                    <td colspan="2"><button onclick="addSet()">Add Set</button> <button onclick="saveWorkout()">Save Workout</button></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Notes</h2>
+        <textarea id="notes" rows="5" cols="50" placeholder="Add any additional notes..."></textarea>
+    </div>
+
+    <script>
+        let setNumber = 1;
+
+        function addSet() {
+            setNumber++;
+            const tbody = document.getElementById('table-body');
+            const newRow = document.createElement('tr');
+            newRow.className = 'set-row';
+            newRow.innerHTML = `
+                <td><input type="text" value="Lowbar Squats" onchange="calculateAll()"></td>
+                <td>${setNumber}</td>
+                <td><input type="number" value="" onchange="calculateAll()"></td>
+                <td><input type="number" value="" onchange="calculateAll()"></td>
+                <td><input type="number" value="" onchange="calculateAll()"></td>
+                <td><select onchange="calculateAll()"><option>No</option><option>Yes</option></select></td>
+                <td><input type="text" value=""></td>
+                <td><input type="number" value="120" onchange="calculateAll()"></td>
+                <td id="e1rm-${setNumber}"><span>0</span></td>
+                <td><button onclick="removeRow(this)">Remove</button></td>
+            `;
+            tbody.appendChild(newRow);
+            calculateAll();
+        }
+
+        function removeRow(button) {
+            button.parentElement.parentElement.remove();
+            updateSetNumbers();
+            calculateAll();
+        }
+
+        function updateSetNumbers() {
+            const rows = document.querySelectorAll('#table-body .set-row');
+            rows.forEach((row, index) => {
+                row.cells[1].textContent = index + 1;
+            });
+            setNumber = rows.length;
+        }
+
+        function calculateAll() {
+            let totalVolume = 0;
+            let totalSets = 0;
+            const rows = document.querySelectorAll('#table-body .set-row');
+            rows.forEach(row => {
+                const weight = parseFloat(row.cells[2].querySelector('input').value) || 0;
+                const reps = parseFloat(row.cells[3].querySelector('input').value) || 0;
+                const rirInput = row.cells[4].querySelector('input');
+                let rir = parseFloat(rirInput.value) || 0;
+                rir = Math.max(0, Math.min(4, rir)); // Enforce 0-4 RIR
+                rirInput.value = rir;
+
+                if (weight && reps) {
+                    totalVolume += weight * reps;
+                    totalSets++;
+
+                    // Brzycki formula for e1rm
+                    const e1rm = Math.round(weight * (36 / (37 - reps)));
+                    const e1rmCell = row.cells[8].querySelector('span');
+                    e1rmCell.textContent = e1rm || 0;
+                }
+            });
+            document.getElementById('total-volume').textContent = `Total Volume: ${totalVolume} lbs | Total Sets: ${totalSets}`;
+        }
+
+        function saveWorkout() {
+            const rows = [];
+            document.querySelectorAll('#table-body .set-row').forEach(row => {
+                rows.push({
+                    exercise: row.cells[0].querySelector('input').value,
+                    set: row.cells[1].textContent,
+                    weight: row.cells[2].querySelector('input').value,
+                    reps: row.cells[3].querySelector('input').value,
+                    rir: row.cells[4].querySelector('input').value,
+                    pump: row.cells[5].querySelector('select').value,
+                    felt: row.cells[6].querySelector('input').value,
+                    rest: row.cells[7].querySelector('input').value,
+                    e1rm: row.cells[8].querySelector('span').textContent
+                });
+            });
+            const notes = document.getElementById('notes').value;
+            const data = { rows, notes, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('monday-workout', JSON.stringify(data));
+            alert('Workout saved!');
+        }
+
+        // Load saved data on start
+        window.onload = function() {
+            const saved = localStorage.getItem('monday-workout');
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Rebuild table from saved data (simplified; expand as needed)
+                alert('Previous workout loaded - edit as needed.');
+            }
+            calculateAll();
+        };
+    </script>
+</body>
+</html>
