@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limitless Performance and Fitness (Local)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: black; color: #7ed957; }
+    header { background: black; border-bottom: 2px solid #7ed957; padding: 10px; text-align: center; }
+    nav { display: flex; justify-content: center; gap: 10px; padding: 10px; border-bottom: 1px solid #7ed957; flex-wrap: wrap; }
+    nav a { color: #7ed957; text-decoration: none; padding: 5px 10px; border: 1px solid #7ed957; border-radius: 4px; }
+    nav a:hover { background: #7ed957; color: black; }
+    .page { display: none; padding: 20px; }
+    .active { display: block; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #7ed957; }
+    th, td { border: 1px solid #7ed957; padding: 6px; text-align: left; color: #7ed957; background: black; }
+    input, select, textarea { width: 100%; padding: 5px; box-sizing: border-box; background: black; color: #7ed957; border: 1px solid #7ed957; }
+    button { background: black; color: #7ed957; padding: 6px 10px; border: 1px solid #7ed957; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #7ed957; color: black; }
+    #total-volume { font-weight: bold; }
+    .delta { color: #7ed957; }
+    .delta.positive { color: #7ed957; }
+    .delta.negative { color: #d9577e; }
+    .notes { background: #111; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #7ed957; }
+    .date-input, .user-id-input { margin-bottom: 10px; }
+    #analytics table { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Limitless Performance and Fitness (Local)</h1>
+  </header>
+  <nav>
+    <a href="#" onclick="showPage('workout')">Workout Log</a>
+    <a href="#" onclick="showPage('daily')">Daily Comments</a>
+    <a href="#" onclick="showPage('nutrition')">Nutrition</a>
+    <a href="#" onclick="showPage('cardio')">Cardio</a>
+    <a href="#" onclick="showPage('analytics')">Analytics</a>
+  </nav>
+
+  <!-- Pages: Workout, Daily, Nutrition, Cardio, Analytics -->
+  <div id="workout" class="page active">
+    <h2>Workout Log</h2>
+    <div class="user-id-input">
+      <label for="user_id">User ID (e.g., email):</label>
+      <input type="text" id="user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="workout-date">Date:</label>
+      <input type="date" id="workout-date">
+    </div>
+    <table id="workout-table">
+      <thead>
+        <tr>
+          <th>Exercise</th><th>Sets</th><th>Weight</th><th>∆Weight</th><th>Reps</th>
+          <th>RIR</th><th>Pump</th><th>Felt</th><th>Rest</th><th>e1RM</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="9" id="total-volume">Total Volume: 0 lbs | Total Sets: 0 | Volume Category: Low</td>
+          <td colspan="2">
+            <button onclick="addSet()">Add Set</button>
+            <button onclick="saveWorkout()">Save Workout</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+    <h3>Notes</h3>
+    <textarea id="notes" rows="4" placeholder="Additional notes..."></textarea>
+  </div>
+
+  <div id="daily" class="page">
+    <h2>Daily Comments</h2>
+    <div class="user-id-input">
+      <label for="daily-user_id">User ID:</label>
+      <input type="text" id="daily-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="daily-date">Date:</label>
+      <input type="date" id="daily-date">
+    </div>
+    <table id="daily-table">
+      <thead>
+        <tr>
+          <th>Pain</th><th>Warm-up</th><th>Tired</th><th>Sore</th><th>Desire</th><th>Notes</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="daily-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="7">
+            <button onclick="addDaily()">Add Daily Log</button>
+            <button onclick="saveDaily()">Save Daily Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="nutrition" class="page">
+    <h2>Nutrition</h2>
+    <div class="user-id-input">
+      <label for="nutrition-user_id">User ID:</label>
+      <input type="text" id="nutrition-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="nutrition-date">Date:</label>
+      <input type="date" id="nutrition-date">
+    </div>
+    <table id="nutrition-table">
+      <thead>
+        <tr>
+          <th>Calories</th><th>Weight</th><th>Steps</th><th>Fat</th><th>Carbs</th><th>Protein</th>
+          <th>Sleep</th><th>RHR</th><th>HRV</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="nutrition-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="9">
+            <button onclick="addNutrition()">Add Nutrition Log</button>
+            <button onclick="saveNutrition()">Save Nutrition Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="cardio" class="page">
+    <h2>Cardio</h2>
+    <div class="user-id-input">
+      <label for="cardio-user_id">User ID:</label>
+      <input type="text" id="cardio-user_id" placeholder="Enter your ID" required>
+    </div>
+    <div class="date-input">
+      <label for="cardio-date">Date:</label>
+      <input type="date" id="cardio-date">
+    </div>
+    <table id="cardio-table">
+      <thead>
+        <tr>
+          <th>Exercise</th><th>Minutes</th><th>Speed</th><th>Incline</th><th>Avg HR</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="cardio-table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6">
+            <button onclick="addCardio()">Add Cardio Log</button>
+            <button onclick="saveCardio()">Save Cardio Log</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="analytics" class="page">
+    <h2>Analytics</h2>
+    <div class="user-id-input">
+      <label for="analytics-user_id">User ID:</label>
+      <input type="text" id="analytics-user_id" placeholder="Enter your ID" required>
+    </div>
+    <canvas id="e1rmChart"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let setNumber = 0;
+    let e1rmChart;
+
+    function getLocalData(key) {
+      return JSON.parse(localStorage.getItem(key) || "{}");
+    }
+
+    function setLocalData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    // Workout Log
+    function addSet(ex = "Exercise", wt = "", reps = "", rir = "", pump = "No", felt = "", rest = 120, e1rm = 0) {
+      setNumber++;
+      const tr = document.createElement("tr");
+      tr.className = "set-row";
+      tr.innerHTML = `
+        <td><input value="${ex}" onchange="calculateAll()"></td>
+        <td>${setNumber}</td>
+        <td><input type="number" min="0" value="${wt}" onchange="calculateAll()"></td>
+        <td><span class="delta"></span></td>
+        <td><input type="number" min="0" value="${reps}" onchange="calculateAll()"></td>
+        <td><input type="number" min="0" max="4" value="${rir}" onchange="calculateAll()"></td>
+        <td><select onchange="calculateAll()"><option ${pump === "No" ? "selected" : ""}>No</option><option ${pump === "Yes" ? "selected" : ""}>Yes</option></select></td>
+        <td><input value="${felt}"></td>
+        <td><input type="number" min="0" value="${rest}" onchange="calculateAll()"></td>
+        <td><span>${e1rm}</span></td>
+        <td><button onclick="this.closest('tr').remove();updateSetNumbers();calculateAll()">Remove</button></td>`;
+      document.getElementById("table-body").appendChild(tr);
+      calculateAll();
+    }
+
+    function updateSetNumbers() {
+      const rows = document.querySelectorAll("#table-body .set-row");
+      rows.forEach((r, i) => r.cells[1].textContent = i + 1);
+      setNumber = rows.length;
+    }
+
+    function calculateAll() {
+      let vol = 0, sets = 0;
+      let prevWeight = 0;
+      document.querySelectorAll("#table-body .set-row").forEach((r, index) => {
+        const w = parseFloat(r.cells[2].querySelector("input").value) || 0;
+        const reps = parseInt(r.cells[4].querySelector("input").value) || 0;
+        const rirI = r.cells[5].querySelector("input");
+        let rir = parseInt(rirI.value) || 0;
+        rir = Math.max(0, Math.min(4, rir));
+        rirI.value = rir;
+        const deltaSpan = r.cells[3].querySelector(".delta");
+        if (index > 0) {
+          const delta = w - prevWeight;
+          deltaSpan.textContent = delta > 0 ? `+${delta}` : delta;
+          deltaSpan.className = `delta ${delta > 0 ? 'positive' : (delta < 0 ? 'negative' : '')}`;
+        } else {
+          deltaSpan.textContent = '';
+        }
+        prevWeight = w;
+        if (w && reps) {
+          vol += w * reps;
+          sets++;
+          r.cells[9].querySelector("span").textContent = Math.round(w * (1 + reps / 30));
+        }
+      });
+      document.getElementById("total-volume").innerHTML = `Total Volume: ${vol} lbs | Total Sets: ${sets} | Volume Category: ${getVolumeCategory(sets)}`;
+    }
+
+    function getVolumeCategory(sets) {
+      if (sets < 10) return 'Low';
+      if (sets < 20) return 'Medium';
+      return 'High';
+    }
+
+    function saveWorkout() {
+      const user_id = document.getElementById("user_id").value.trim();
+      if (!user_id) { alert("Please enter a User ID."); return; }
+
+      const rows = [];
+      document.querySelectorAll("#table-body .set-row").forEach(r => {
+        rows.push({
+          exercise: r.cells[0].querySelector("input").value.trim(),
+          set_number: parseInt(r.cells[1].textContent),
+          weight: parseFloat(r.cells[2].querySelector("input").value) || 0,
+          reps: parseInt(r.cells[4].querySelector("input").value) || 0,
+          rir: parseInt(r.cells[5].querySelector("input").value) || 0,
+          pump: r.cells[6].querySelector("select").value,
+          felt: r.cells[7].querySelector("input").value.trim(),
+          rest: parseInt(r.cells[8].querySelector("input").value) || 0,
+          e1rm: parseFloat(r.cells[9].querySelector("span").textContent) || 0
+        });
+      });
+
+      const dateKey = document.getElementById("workout-date").value || new Date().toISOString().split("T")[0];
+      const notes = document.getElementById("notes").value.trim();
+
+      const data = getLocalData("workouts");
+      if (!data[user_id]) data[user_id] = {};
+      data[user_id][dateKey] = { rows, notes };
+      setLocalData("workouts", data);
+      alert("Workout saved locally!");
+    }
+
+    function loadAnalytics() {
+      const user_id = document.getElementById("analytics-user_id").value.trim();
+      if (!user_id) { alert("Please enter a User ID"); return; }
+      const data = getLocalData("workouts")[user_id] || {};
+      const dates = Object.keys(data).sort();
+      const volumes = dates.map(d => {
+        return data[d].rows.reduce((sum, r) => sum + (r.weight * r.reps), 0);
+      });
+      const ctx = document.getElementById("e1rmChart").getContext("2d");
+      if (e1rmChart) e1rmChart.destroy();
+      e1rmChart = new Chart(ctx, {
+        type: "line",
+        data: { labels: dates, datasets: [{ label: "Workout Volume", data: volumes, borderColor: "#7ed957", backgroundColor: "rgba(126,217,87,0.2)", tension: 0.3 }] },
+        options: { scales: { y: { title: { display: true, text: "Volume (lbs)" } }, x: { title: { display: true, text: "Date" } } } }
+      });
+    }
+
+    // Page Switching
+    function showPage(id) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      if (id === "analytics") loadAnalytics();
+    }
+
+    window.onload = function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('input[type="date"]').forEach(d => d.value = today);
+      addSet("Lowbar Squat", 315, 5, 2, "No", "Quads", 120, 354);
+    };
+  </script>
+</body>
+</html>
