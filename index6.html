@@ -1,0 +1,337 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+    const API_URL = 'http://localhost:5000'; // Match Flask server
+    let setNumber = 0;
+    let e1rmChart;
+
+    // Workout Log
+    function addSet(ex = "Exercise", wt = "", reps = "", rir = "", pump = "No", felt = "", rest = 120, e1rm = 0) {
+        setNumber++;
+        const tr = document.createElement("tr");
+        tr.className = "set-row";
+        tr.innerHTML = `
+            <td><input value="${ex}" onchange="calculateAll()"></td>
+            <td>${setNumber}</td>
+            <td><input type="number" min="0" value="${wt}" onchange="calculateAll()"></td>
+            <td><span class="delta"></span></td>
+            <td><input type="number" min="0" value="${reps}" onchange="calculateAll()"></td>
+            <td><input type="number" min="0" max="4" value="${rir}" onchange="calculateAll()"></td>
+            <td><select onchange="calculateAll()"><option ${pump === "No" ? "selected" : ""}>No</option><option ${pump === "Yes" ? "selected" : ""}>Yes</option></select></td>
+            <td><input value="${felt}"></td>
+            <td><input type="number" min="0" value="${rest}" onchange="calculateAll()"></td>
+            <td><span>${e1rm}</span></td>
+            <td><button onclick="this.closest('tr').remove();updateSetNumbers();calculateAll()">Remove</button></td>`;
+        document.getElementById("table-body").appendChild(tr);
+        calculateAll();
+    }
+
+    function updateSetNumbers() {
+        const rows = document.querySelectorAll("#table-body .set-row");
+        rows.forEach((r, i) => r.cells[1].textContent = i + 1);
+        setNumber = rows.length;
+    }
+
+    function calculateAll() {
+        let vol = 0, sets = 0;
+        let prevWeight = 0;
+        document.querySelectorAll("#table-body .set-row").forEach((r, index) => {
+            const w = parseFloat(r.cells[2].querySelector("input").value) || 0;
+            const reps = parseInt(r.cells[4].querySelector("input").value) || 0;
+            const rirI = r.cells[5].querySelector("input");
+            let rir = parseInt(rirI.value) || 0;
+            rir = Math.max(0, Math.min(4, rir));
+            rirI.value = rir;
+            const deltaSpan = r.cells[3].querySelector(".delta");
+            if (index > 0) {
+                const delta = w - prevWeight;
+                deltaSpan.textContent = delta > 0 ? `+${delta}` : delta;
+                deltaSpan.className = `delta ${delta > 0 ? 'positive' : (delta < 0 ? 'negative' : '')}`;
+            } else {
+                deltaSpan.textContent = '';
+            }
+            prevWeight = w;
+            if (w && reps) {
+                vol += w * reps;
+                sets++;
+                r.cells[9].querySelector("span").textContent = Math.round(w * (1 + reps / 30));
+            }
+        });
+        document.getElementById("total-volume").innerHTML = `Total Volume: ${vol} lbs | Total Sets: ${sets} | Volume Category: ${getVolumeCategory(sets)}`;
+    }
+
+    function getVolumeCategory(sets) {
+        if (sets < 10) return 'Low';
+        if (sets < 20) return 'Medium';
+        return 'High';
+    }
+
+    async function saveWorkout() {
+        const user_id = document.getElementById("user_id").value.trim();
+        if (!user_id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        const rows = [];
+        document.querySelectorAll("#table-body .set-row").forEach(r => {
+            const weight = parseFloat(r.cells[2].querySelector("input").value) || null;
+            const reps = parseInt(r.cells[4].querySelector("input").value) || null;
+            rows.push({
+                user_id,
+                date: document.getElementById("workout-date").value || new Date().toISOString().split("T")[0],
+                exercise: r.cells[0].querySelector("input").value.trim() || "Unknown",
+                sets: parseInt(r.cells[1].textContent) || null,
+                weight,
+                delta_weight: null,
+                reps,
+                rir: parseInt(r.cells[5].querySelector("input").value) || null,
+                pump: r.cells[6].querySelector("select").value === "Yes" ? 1 : 0,
+                felt: parseInt(r.cells[7].querySelector("input").value) || null,
+                rest: parseInt(r.cells[8].querySelector("input").value) || null,
+                e1rm: parseFloat(r.cells[9].querySelector("span").textContent) || null
+            });
+        });
+        if (rows.length === 0) {
+            alert("Please add at least one set.");
+            return;
+        }
+        try {
+            for (const row of rows) {
+                console.log('Sending to:', `${API_URL}/save/workout`, JSON.stringify(row));
+                const response = await fetch(`${API_URL}/save/workout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(row)
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to save workout: ${errorText}`);
+                }
+            }
+            alert("Workout saved!");
+            document.getElementById("table-body").innerHTML = "";
+            setNumber = 0;
+            document.getElementById("notes").value = "";
+            calculateAll();
+        } catch (error) {
+            console.error("Error saving workout:", error);
+            alert("Error saving workout. Please check the server.");
+        }
+    }
+
+    async function saveDaily() {
+        const user_id = document.getElementById("daily-user_id").value.trim();
+        if (!user_id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        const dateInput = document.getElementById("daily-date").value;
+        const dateKey = dateInput || new Date().toISOString().split("T")[0];
+        const rows = document.querySelectorAll("#daily-table-body .daily-row");
+        if (rows.length === 0) {
+            alert("Please add a daily log entry.");
+            return;
+        }
+        const data = {
+            user_id,
+            date: dateKey,
+            pain: rows[0].cells[0].querySelector("input").value.trim() || null,
+            warmup: rows[0].cells[1].querySelector("input").value.trim() || null,
+            tired: rows[0].cells[2].querySelector("input").value.trim() || null,
+            sore: rows[0].cells[3].querySelector("input").value.trim() || null,
+            desire: rows[0].cells[4].querySelector("input").value.trim() || null,
+            notes: rows[0].cells[5].querySelector("input").value.trim() || null
+        };
+        try {
+            console.log('Sending to:', `${API_URL}/save/daily-comment`, JSON.stringify(data));
+            const response = await fetch(`${API_URL}/save/daily-comment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                alert("Daily log saved!");
+                document.getElementById("daily-table-body").innerHTML = "";
+            } else {
+                const errorText = await response.text();
+                throw new Error(`Failed to save daily log: ${errorText}`);
+            }
+        } catch (error) {
+            console.error("Error saving daily log:", error);
+            alert("Error saving daily log. Please check the server.");
+        }
+    }
+
+    async function saveNutrition() {
+        const user_id = document.getElementById("nutrition-user_id").value.trim();
+        if (!user_id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        const dateInput = document.getElementById("nutrition-date").value;
+        const dateKey = dateInput || new Date().toISOString().split("T")[0];
+        const rows = document.querySelectorAll("#nutrition-table-body .nutrition-row");
+        if (rows.length === 0) {
+            alert("Please add a nutrition log entry.");
+            return;
+        }
+        const data = {
+            user_id,
+            date: dateKey,
+            calories: parseInt(rows[0].cells[0].querySelector("input").value) || null,
+            weight: parseFloat(rows[0].cells[1].querySelector("input").value) || null,
+            steps: parseInt(rows[0].cells[2].querySelector("input").value) || null,
+            fat: parseInt(rows[0].cells[3].querySelector("input").value) || null,
+            carbs: parseInt(rows[0].cells[4].querySelector("input").value) || null,
+            protein: parseInt(rows[0].cells[5].querySelector("input").value) || null,
+            sleep: parseFloat(rows[0].cells[6].querySelector("input").value) || null,
+            rhr: parseInt(rows[0].cells[7].querySelector("input").value) || null,
+            hrv: parseInt(rows[0].cells[8].querySelector("input").value) || null
+        };
+        try {
+            console.log('Sending to:', `${API_URL}/save/nutrition`, JSON.stringify(data));
+            const response = await fetch(`${API_URL}/save/nutrition`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                alert("Nutrition log saved!");
+                document.getElementById("nutrition-table-body").innerHTML = "";
+            } else {
+                const errorText = await response.text();
+                throw new Error(`Failed to save nutrition log: ${errorText}`);
+            }
+        } catch (error) {
+            console.error("Error saving nutrition log:", error);
+            alert("Error saving nutrition log. Please check the server.");
+        }
+    }
+
+    async function saveCardio() {
+        const user_id = document.getElementById("cardio-user_id").value.trim();
+        if (!user_id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        const dateInput = document.getElementById("cardio-date").value;
+        const dateKey = dateInput || new Date().toISOString().split("T")[0];
+        const rows = document.querySelectorAll("#cardio-table-body .cardio-row");
+        if (rows.length === 0) {
+            alert("Please add a cardio log entry.");
+            return;
+        }
+        try {
+            for (const row of rows) {
+                const data = {
+                    user_id,
+                    date: dateKey,
+                    exercise: row.cells[0].querySelector("input").value.trim() || "Unknown",
+                    minutes: parseInt(row.cells[1].querySelector("input").value) || null,
+                    speed: parseFloat(row.cells[2].querySelector("input").value) || null,
+                    incline: parseFloat(row.cells[3].querySelector("input").value) || null,
+                    avg_hr: parseInt(row.cells[4].querySelector("input").value) || null
+                };
+                console.log('Sending to:', `${API_URL}/save/cardio`, JSON.stringify(data));
+                const response = await fetch(`${API_URL}/save/cardio`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to save cardio log: ${errorText}`);
+                }
+            }
+            alert("Cardio log saved!");
+            document.getElementById("cardio-table-body").innerHTML = "";
+        } catch (error) {
+            console.error("Error saving cardio log:", error);
+            alert("Error saving cardio log. Please check the server.");
+        }
+    }
+
+    async function loadAnalytics() {
+        const user_id = document.getElementById("analytics-user_id").value.trim();
+        if (!user_id) {
+            alert("Please enter a User ID to view analytics.");
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/workouts/history/${user_id}`);
+            const data = await response.json();
+            const dates = [];
+            const volumes = [];
+            data.forEach(d => {
+                let vol = 0;
+                d.rows.forEach(r => {
+                    vol += (r.weight || 0) * (r.reps || 0);
+                });
+                dates.push(d.date);
+                volumes.push(vol);
+            });
+            const ctx = document.getElementById("e1rmChart").getContext("2d");
+            if (e1rmChart) e1rmChart.destroy();
+            e1rmChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: "Workout Volume",
+                        data: volumes,
+                        borderColor: "#7ed957",
+                        backgroundColor: "rgba(126,217,87,0.2)",
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { type: "time", time: { unit: "day" }, title: { display: true, text: "Date" } },
+                        y: { title: { display: true, text: "Volume (lbs)" } }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Error loading analytics:", error);
+            alert("Error loading analytics. Please check the server.");
+        }
+    }
+
+    function showPage(id) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        if (id === "analytics") loadAnalytics();
+        if (id === "workout") setWorkoutDate();
+        if (id === "daily") setDailyDate();
+        if (id === "nutrition") setNutritionDate();
+        if (id === "cardio") setCardioDate();
+    }
+
+    function setWorkoutDate() {
+        document.getElementById("workout-date").value = new Date().toISOString().split('T')[0];
+    }
+
+    function setDailyDate() {
+        document.getElementById("daily-date").value = new Date().toISOString().split('T')[0];
+    }
+
+    function setNutritionDate() {
+        document.getElementById("nutrition-date").value = new Date().toISOString().split('T')[0];
+    }
+
+    function setCardioDate() {
+        document.getElementById("cardio-date").value = new Date().toISOString().split('T')[0];
+    }
+
+    window.onload = function() {
+        setWorkoutDate();
+        setDailyDate();
+        setNutritionDate();
+        setCardioDate();
+        addSet("Lowbar Squat", 315, 5, 2, "No", "Quads", 120, 354);
+        addDaily("Mild discomfort", "Light", "A little tired", "Mild soreness", "High", "Upper");
+        addNutrition(2500, 180, 10000, 80, 300, 150, 7.5, 60, 50);
+        addCardio("Treadmill", 30, 3, 3, 122);
+        calculateAll();
+    };
+</script>
