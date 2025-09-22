@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LPF Fit Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #7ed957; margin: 0; padding: 0; }
+    nav { background: #000; padding: 10px; border-bottom: 2px solid #7ed957; }
+    nav button { background: #7ed957; border: none; padding: 10px 15px; margin: 5px; border-radius: 5px; cursor: pointer; }
+    nav button:hover { background: #5bb946; }
+    .page { display: none; padding: 20px; }
+    .page.active { display: block; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th, td { border: 1px solid #7ed957; padding: 6px; text-align: center; }
+    th { background: #222; }
+    button.small { padding: 3px 6px; }
+    textarea { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <button onclick="showPage('workout')">Workout Log</button>
+    <button onclick="showPage('comments')">Daily Comments</button>
+    <button onclick="showPage('nutrition')">Nutrition</button>
+    <button onclick="showPage('cardio')">Cardio</button>
+    <button onclick="showPage('analytics')">Analytics</button>
+  </nav>
+
+  <!-- Workout Log -->
+  <div id="workout" class="page active">
+    <h2>Workout Log</h2>
+    <table id="workout-table">
+      <thead>
+        <tr>
+          <th>Exercise</th><th>Sets</th><th>Weight</th><th>∆Weight</th><th>Reps</th>
+          <th>RIR</th><th>Pump</th><th>Felt</th><th>Rest</th><th>e1RM</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="9" id="total-volume">Total Volume: 0 lbs | Total Sets: 0 | Volume Category: Low</td>
+          <td colspan="2">
+            <button onclick="addSet()">Add Set</button>
+            <button onclick="saveWorkout()">Save Workout</button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+    <h3>Notes</h3>
+    <textarea id="notes" rows="4" placeholder="Additional notes..."></textarea>
+  </div>
+
+  <!-- Daily Comments -->
+  <div id="comments" class="page">
+    <h2>Daily Comments</h2>
+    <textarea id="daily-comments" rows="6" placeholder="How was your session? Energy, soreness, mood, recovery, etc."></textarea>
+    <br><button onclick="saveComments()">Save Comments</button>
+  </div>
+
+  <!-- Nutrition -->
+  <div id="nutrition" class="page">
+    <h2>Nutrition Log</h2>
+    <table id="nutrition-table">
+      <thead>
+        <tr><th>Meal</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Fats</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="nutrition-body"></tbody>
+    </table>
+    <button onclick="addMeal()">Add Meal</button>
+    <button onclick="saveNutrition()">Save Nutrition</button>
+  </div>
+
+  <!-- Cardio -->
+  <div id="cardio" class="page">
+    <h2>Cardio Log</h2>
+    <table id="cardio-table">
+      <thead>
+        <tr><th>Exercise</th><th>Minutes</th><th>Speed</th><th>Incline</th><th>Avg HR</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="cardio-body"></tbody>
+    </table>
+    <button onclick="addCardio()">Add Cardio</button>
+    <button onclick="saveCardio()">Save Cardio</button>
+  </div>
+
+  <!-- Analytics -->
+  <div id="analytics" class="page">
+    <h2>Analytics</h2>
+    <canvas id="e1rmChart"></canvas>
+    <h3>Progress Stats</h3>
+    <table id="stats-table">
+      <thead><tr><th>Lift</th><th>First</th><th>Latest</th><th>Best</th><th>Avg</th><th>Progress</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script>
+    // --- Navigation ---
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      if (id === 'analytics') loadAnalytics();
+    }
+
+    // --- Workout Log ---
+    function addSet() {
+      const tbody = document.getElementById("table-body");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text"></td>
+        <td><input type="number" value="1" min="1" onchange="updateTotals()"></td>
+        <td><input type="number" value="0" min="0" onchange="updateRow(this)"></td>
+        <td class="delta-weight">0</td>
+        <td><input type="number" value="0" min="0" onchange="updateRow(this)"></td>
+        <td><input type="text"></td>
+        <td><input type="text"></td>
+        <td><input type="text"></td>
+        <td><input type="text"></td>
+        <td class="e1rm">0</td>
+        <td><button class="small" onclick="this.closest('tr').remove(); updateTotals()">❌</button></td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    function updateRow(input) {
+      const row = input.closest("tr");
+      const weight = parseFloat(row.querySelector("td:nth-child(3) input").value) || 0;
+      const reps = parseFloat(row.querySelector("td:nth-child(5) input").value) || 0;
+      row.querySelector(".e1rm").textContent = reps > 1 ? Math.round(weight * (1 + reps / 30)) : weight;
+      const prev = row.previousElementSibling;
+      if (prev) {
+        const prevWeight = parseFloat(prev.querySelector("td:nth-child(3) input").value) || 0;
+        row.querySelector(".delta-weight").textContent = (weight - prevWeight).toFixed(1);
+      }
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const rows = document.querySelectorAll("#table-body tr");
+      let vol = 0, sets = 0;
+      rows.forEach(row => {
+        const s = parseFloat(row.querySelector("td:nth-child(2) input").value) || 0;
+        const w = parseFloat(row.querySelector("td:nth-child(3) input").value) || 0;
+        const r = parseFloat(row.querySelector("td:nth-child(5) input").value) || 0;
+        vol += s * w * r; sets += s;
+      });
+      let cat = "Low"; if (vol > 10000) cat = "High"; else if (vol > 5000) cat = "Moderate";
+      document.getElementById("total-volume").textContent = `Total Volume: ${vol} lbs | Total Sets: ${sets} | Volume Category: ${cat}`;
+    }
+
+    function saveWorkout() {
+      alert("Workout Saved (console log)"); 
+      console.log("Workout log saved");
+    }
+
+    // --- Daily Comments ---
+    function saveComments() {
+      const comments = document.getElementById("daily-comments").value;
+      alert("Comments saved!"); 
+      console.log("Comments:", comments);
+    }
+
+    // --- Nutrition ---
+    function addMeal() {
+      const tbody = document.getElementById("nutrition-body");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text"></td>
+        <td><input type="number" value="0"></td>
+        <td><input type="number" value="0"></td>
+        <td><input type="number" value="0"></td>
+        <td><input type="number" value="0"></td>
+        <td><button class="small" onclick="this.closest('tr').remove()">❌</button></td>
+      `;
+      tbody.appendChild(row);
+    }
+    function saveNutrition() {
+      alert("Nutrition saved (console log)");
+      console.log("Nutrition saved");
+    }
+
+    // --- Cardio ---
+    function addCardio() {
+      const tbody = document.getElementById("cardio-body");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text"></td>
+        <td><input type="number" value="0"></td>
+        <td><input type="number" value="0"></td>
+        <td><input type="number" value="0"></td>
+        <td><input type="number" value="0"></td>
+        <td><button class="small" onclick="this.closest('tr').remove()">❌</button></td>
+      `;
+      tbody.appendChild(row);
+    }
+    function saveCardio() {
+      alert("Cardio saved (console log)");
+      console.log("Cardio saved");
+    }
+
+    // --- Analytics ---
+    let e1rmChart = null;
+    function loadAnalytics() {
+      // Fake data (replace with API later)
+      const grouped = {
+        "Bench Press": [
+          { date: "2025-01-01", e1rm: 200 },
+          { date: "2025-02-01", e1rm: 210 },
+          { date: "2025-03-01", e1rm: 220 }
+        ],
+        "Squat": [
+          { date: "2025-01-01", e1rm: 300 },
+          { date: "2025-02-01", e1rm: 320 },
+          { date: "2025-03-01", e1rm: 330 }
+        ]
+      };
+
+      const datasets = Object.keys(grouped).map((lift, i) => ({
+        label: lift,
+        data: grouped[lift].map(d => ({ x: d.date, y: d.e1rm })),
+        borderColor: ["#7ed957","#57d9d9","#d9577e"][i%3], fill: false
+      }));
+
+      if (e1rmChart) e1rmChart.destroy();
+      const ctx = document.getElementById("e1rmChart").getContext("2d");
+      e1rmChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: { responsive: true, scales: { x: { type:'time', time:{unit:'month'} } } }
+      });
+
+      const tbody = document.querySelector("#stats-table tbody");
+      tbody.innerHTML = "";
+      for (const lift in grouped) {
+        const vals = grouped[lift].map(d=>d.e1rm);
+        const first=vals[0], latest=vals.at(-1), best=Math.max(...vals);
+        const avg=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+        const progress=((latest-first)/first*100).toFixed(1)+"%";
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${lift}</td><td>${first}</td><td>${latest}</td><td>${best}</td><td>${avg}</td><td>${progress}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+  </script>
+</body>
+</html>
